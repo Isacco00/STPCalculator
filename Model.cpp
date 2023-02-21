@@ -9,11 +9,9 @@ Model::~Model(void) {
 	Clear();
 }
 
-
 void Model::GetAllComponents(vector<Component*>& comps) const {
 	for (const auto& rootComp : m_rootComponents) {
 		comps.push_back(rootComp);
-		rootComp->GetAllComponents(comps);
 	}
 }
 
@@ -31,29 +29,27 @@ const Bnd_Box Model::GetBoundingBox(bool sketch) const {
 const ShapeType Model::GetShapeType(void) const {
 	vector<Component*> comps;
 	GetAllComponents(comps);
-
 	int shapeCount = 0;
 	int sketchCount = 0;
-
 	ShapeType shapeType = ShapeType::Face_Geom;
-
 	for (const auto& comp : comps) {
 		for (int i = 0; i < comp->GetIShapeSize(); ++i) {
 			IShape* iShape = comp->GetIShapeAt(i);
 			shapeCount++;
-
-			if (iShape->IsSketchGeometry())
+			if (iShape->IsSketchGeometry()) {
 				sketchCount++;
+			}
 		}
 	}
 
 	comps.clear();
 
 	if (sketchCount > 0) {
-		if (shapeCount == sketchCount)
+		if (shapeCount == sketchCount) {
 			shapeType = ShapeType::Sketch_Geom;
-		else
+		} else {
 			shapeType = ShapeType::Hybrid_Geom;
+		}
 	}
 
 	return shapeType;
@@ -61,14 +57,14 @@ const ShapeType Model::GetShapeType(void) const {
 
 bool Model::IsEmpty(void) const {
 	int size = 0;
-
 	for (const auto& rootComp : m_rootComponents) {
-		if (rootComp->IsEmpty())
+		if (rootComp->IsEmpty()) {
 			size++;
+		}
 	}
-
-	if (size == (int)m_rootComponents.size())
+	if (size == (int)m_rootComponents.size()) {
 		return true;
+	}
 
 	return false;
 }
@@ -80,10 +76,8 @@ void Model::Update(void) {
 
 void Model::Clean(void) {
 	int rootCompSize = GetRootComponentSize();
-
 	for (int i = rootCompSize - 1; i >= 0; --i) {
 		Component* rootComp = GetRootComponentAt(i);
-
 		if (rootComp->IsEmpty()) {
 			m_rootComponents.erase(m_rootComponents.begin() + i);
 			delete rootComp;
@@ -159,21 +153,6 @@ void Model::UpdateComponentNames(void) const {
 
 		wstring compName = comp->GetName();
 		int compIndex = 1;
-
-		for (int i = 0; i < comp->GetSubComponentSize(); ++i) {
-			Component* subComp = comp->GetSubComponentAt(i);
-
-			if (subComp->HasUniqueName())
-				continue;
-
-			// Do not count wire set (SFA-specific)
-			if (subComp->GetIShapeSize() == 1
-				&& subComp->GetIShapeAt(0)->IsSketchGeometry())
-				continue;
-
-			subComp->SetName(compName + connector + to_wstring(compIndex));
-			compIndex++;
-		}
 	}
 
 	comps.clear();
@@ -229,6 +208,5 @@ void Model::UpdateGlobalIShapeIndex(void) const {
 void Model::Clear(void) {
 	for (auto rootComp : m_rootComponents)
 		delete rootComp;
-
 	m_rootComponents.clear();
 }

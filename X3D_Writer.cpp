@@ -183,7 +183,6 @@ wstring X3D_Writer::WriteModel(Model*& model, int level) {
 		Component* rootComp = model->GetRootComponentAt(i);
 
 		if (m_opt->SFA() // SFA-specific
-			&& rootComp->GetSubComponentSize() == 0
 			&& rootComp->GetIShapeSize() == 1
 			&& rootComp->GetIShapeAt(0)->IsSketchGeometry()) {
 			IShape* shape = rootComp->GetIShapeAt(0);
@@ -212,76 +211,7 @@ wstring X3D_Writer::WriteModel(Model*& model, int level) {
 
 wstring X3D_Writer::WriteComponent(Component*& comp, int level) {
 	wstringstream ss_comp;
-
-	for (int i = 0; i < comp->GetSubComponentSize(); ++i) {
-		Component* subComp = comp->GetSubComponentAt(i);
-		bool isTransformed = OCCUtil::IsTransformed(subComp->GetTransformation());
-
-		if (isTransformed) {
-			ss_comp << Indent(level + 1);
-			ss_comp << "<Transform";
-			CountIndent(level + 1);
-
-			if (m_opt->SFA())
-				ss_comp << " id='" << subComp->GetName() << "'";
-
-			// Transform attributes i.e. Translation and Rotation
-			ss_comp << WriteTransformAttributes(subComp->GetTransformation()) << ">\n";
-		} else
-			level--;
-
-		if (subComp->IsCopy()) {
-			if (m_opt->SFA() // SFA-specific
-				&& subComp->GetOriginalComponent()->GetSubComponentSize() == 0
-				&& subComp->GetOriginalComponent()->GetIShapeSize() == 1
-				&& subComp->GetOriginalComponent()->GetIShapeAt(0)->IsSketchGeometry()) {
-				IShape* shape = subComp->GetOriginalComponent()->GetIShapeAt(0);
-				ss_comp << WriteSketchGeometry(shape, level + 2);
-			} else {
-				wstring orgCompName = subComp->GetOriginalComponent()->GetName();
-
-				ss_comp << Indent(level + 2);
-				ss_comp << "<Group USE='" << orgCompName;
-
-				if (m_opt->SFA())
-					ss_comp << "'></Group>\n";
-				else
-					ss_comp << "'/>\n";
-
-				CountIndent(level + 2);
-			}
-		} else {
-			if (m_opt->SFA() // SFA-specific
-				&& subComp->GetSubComponentSize() == 0
-				&& subComp->GetIShapeSize() == 1
-				&& subComp->GetIShapeAt(0)->IsSketchGeometry()) {
-				IShape* shape = subComp->GetIShapeAt(0);
-				ss_comp << WriteSketchGeometry(shape, level + 2);
-			} else {
-				ss_comp << Indent(level + 2);
-				ss_comp << "<Group";
-
-				if (m_opt->SFA()
-					&& subComp->GetStepID() != -1)
-					ss_comp << " id='msb " << subComp->GetStepID() << "'";
-
-				ss_comp << " DEF='" << subComp->GetName() << "'>\n";
-				CountIndent(level + 2);
-
-				ss_comp << WriteComponent(subComp, level + 2); // Recursive call
-
-				ss_comp << Indent(level + 2);
-				ss_comp << "</Group>\n";
-			}
-		}
-
-		if (isTransformed) {
-			ss_comp << Indent(level + 1);
-			ss_comp << "</Transform>\n";
-		} else
-			level++;
-	}
-
+	
 	// Write shape nodes
 	for (int i = 0; i < comp->GetIShapeSize(); ++i) {
 		IShape* iShape = comp->GetIShapeAt(i);

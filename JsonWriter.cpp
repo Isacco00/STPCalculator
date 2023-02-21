@@ -82,7 +82,6 @@ json JsonWriter::GetComponents(Model*& model) {
 		for (int i = 0; i < model->GetRootComponentSize(); i++) {
 			Component* rootComp = model->GetRootComponentAt(i);
 			if (m_opt->SFA() // SFA-specific
-				&& rootComp->GetSubComponentSize() == 0
 				&& rootComp->GetIShapeSize() == 1
 				&& rootComp->GetIShapeAt(0)->IsSketchGeometry()) {
 				//TO MANAGE
