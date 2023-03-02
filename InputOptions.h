@@ -7,21 +7,16 @@ public:
 
 	void SetInput(const wstring& input) { m_input = input; }
 	void SetOutput(const wstring& output) { m_output = output; }
-	void SetEdge(const int& edge);
-	void SetSketch(const int& sketch);
-	void SetHtml(const int& html);
-	void SetQuality(const double& quality) { m_quality = quality; }
-	void SetSFA(bool sfa) { m_SFA = sfa; }
 
-	const wstring& Input(void) const { return m_input; }
-	const wstring Output(void) const;
-	const wstring OutputJson(void) const;
-	wstring OutputDirectory(void) { return m_output; }
-	bool Edge(void) const { return m_edge; }
-	bool Sketch(void) const { return m_sketch; }
-	bool Html(void) const { return m_html; }
-	double Quality(void) const { return m_quality; }
-	bool SFA(void) const { return m_SFA; }
+	const wstring& GetInput(void) const { return m_input; }
+	const wstring GetOutput(void) const;
+	const wstring GetOutputJson(void) const;
+	wstring GetOutputDirectory(void) { return m_output; }
+	bool GetEdge(void) const { return m_edge; }
+	bool GetSketch(void) const { return m_sketch; }
+	bool GetHtml(void) const { return m_html; }
+	double GetQuality(void) const { return m_quality; }
+	bool GetSFA(void) const { return m_SFA; }
 
 	// Software version (as of Feb 2022)
 	const wstring Version(void) const { return L"1.21"; }

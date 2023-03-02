@@ -44,7 +44,7 @@ void X3D_Writer::WriteX3D(Model*& model) {
 	ss_x3d << CloseHeader();
 
 	// Write X3D file
-	wstring filePath = m_opt->Output();
+	wstring filePath = m_opt->GetOutput();
 
 	wofstream wof;
 
@@ -56,7 +56,7 @@ void X3D_Writer::WriteX3D(Model*& model) {
 	wof.close();
 
 	/// Print results required for SFA
-	if (m_opt->SFA()) {
+	if (m_opt->GetSFA()) {
 		PrintIndentCount();
 		PrintMaterialCount();
 	}
@@ -68,7 +68,7 @@ void X3D_Writer::WriteX3D(Model*& model) {
 wstring X3D_Writer::OpenHeader(void) const {
 	wstringstream ss_hd;
 
-	if (m_opt->Html()) {
+	if (m_opt->GetHtml()) {
 		ss_hd << "<html>\n";
 		ss_hd << "<head>\n";
 		ss_hd << " <link rel='stylesheet' type='text/css' href='https://www.x3dom.org/x3dom/release/x3dom.css'/>\n";
@@ -81,7 +81,6 @@ wstring X3D_Writer::OpenHeader(void) const {
 
 	ss_hd << "<X3D version='3.3'>\n";
 	ss_hd << "<head>\n";
-	ss_hd << " <meta name='Generator' content='NIST STP2X3D Translator " << m_opt->Version() << "'/>\n";
 	ss_hd << "</head>\n";
 	ss_hd << "<Scene>\n";
 
@@ -94,7 +93,7 @@ wstring X3D_Writer::CloseHeader(void) const {
 	ss_hd << "</Scene>\n";
 	ss_hd << "</X3D>";
 
-	if (m_opt->Html()) {
+	if (m_opt->GetHtml()) {
 		ss_hd << "\n";
 		ss_hd << "</body>\n";
 		ss_hd << "</html>";
@@ -104,12 +103,12 @@ wstring X3D_Writer::CloseHeader(void) const {
 }
 
 wstring X3D_Writer::WriteViewpoint(Model*& model, int level) const {
-	if (!m_opt->Html())
+	if (!m_opt->GetHtml())
 		return L"";
 
 	wstringstream ss_vp;
 
-	Bnd_Box bndBox = model->GetBoundingBox(m_opt->Sketch());
+	Bnd_Box bndBox = model->GetBoundingBox(m_opt->GetSketch());
 	assert(!bndBox.IsVoid());
 
 	double X_min = 0.0, Y_min = 0.0, Z_min = 0.0;
@@ -171,7 +170,7 @@ wstring X3D_Writer::WriteViewpoint(Model*& model, int level) const {
 wstring X3D_Writer::WriteModel(Model*& model, int level) {
 	wstringstream ss_model;
 
-	if (model->GetRootComponentSize() >= 2) {
+	if (model->GetComponentSize() >= 2) {
 		ss_model << Indent(level);
 		ss_model << "<Group>\n";
 		CountIndent(level);
@@ -179,10 +178,10 @@ wstring X3D_Writer::WriteModel(Model*& model, int level) {
 		level--;
 
 	// Write root components
-	for (int i = 0; i < model->GetRootComponentSize(); ++i) {
-		Component* rootComp = model->GetRootComponentAt(i);
+	for (int i = 0; i < model->GetComponentSize(); ++i) {
+		Component* rootComp = model->GetComponentAt(i);
 
-		if (m_opt->SFA() // SFA-specific
+		if (m_opt->GetSFA() // SFA-specific
 			&& rootComp->GetIShapeSize() == 1
 			&& rootComp->GetIShapeAt(0)->IsSketchGeometry()) {
 			IShape* shape = rootComp->GetIShapeAt(0);
@@ -201,7 +200,7 @@ wstring X3D_Writer::WriteModel(Model*& model, int level) {
 		}
 	}
 
-	if (model->GetRootComponentSize() >= 2) {
+	if (model->GetComponentSize() >= 2) {
 		ss_model << Indent(level);
 		ss_model << "</Group>\n";
 	}
@@ -211,13 +210,10 @@ wstring X3D_Writer::WriteModel(Model*& model, int level) {
 
 wstring X3D_Writer::WriteComponent(Component*& comp, int level) {
 	wstringstream ss_comp;
-	
+
 	// Write shape nodes
 	for (int i = 0; i < comp->GetIShapeSize(); ++i) {
 		IShape* iShape = comp->GetIShapeAt(i);
-
-		if (iShape->IsHidden())
-			continue;
 
 		try {
 			ss_comp << WriteShape(iShape, level + 1);
@@ -265,7 +261,7 @@ wstring X3D_Writer::WriteShape(IShape*& iShape, int level) {
 		ss_shape << Indent(level);
 		ss_shape << "<Shape";
 
-		if (m_opt->SFA())
+		if (m_opt->GetSFA())
 			ss_shape << " id='" << shapeId << "'";
 
 		ss_shape << " DEF='" << iShape->GetName() << "'";
@@ -276,12 +272,12 @@ wstring X3D_Writer::WriteShape(IShape*& iShape, int level) {
 		ss_shape << Indent(level);
 		ss_shape << "</Shape>\n";
 
-		if (m_opt->Edge()) // Boundary edges
+		if (m_opt->GetEdge()) // Boundary edges
 		{
 			ss_shape << Indent(level);
 			ss_shape << "<Shape";
 
-			if (m_opt->SFA())
+			if (m_opt->GetSFA())
 				ss_shape << " id='" << shapeId << "'";
 
 			ss_shape << " DEF='" << iShape->GetName() << "_edges'";
@@ -297,12 +293,7 @@ wstring X3D_Writer::WriteShape(IShape*& iShape, int level) {
 		ss_shape << Indent(level);
 		ss_shape << "<Shape";
 
-		if (m_opt->SFA()
-			&& iShape->GetStepID() != -1
-			&& iShape->IsHidden())
-			ss_shape << " id='curve 11 " << iShape->GetStepID() << "'";
-
-		if (!m_opt->SFA())
+		if (!m_opt->GetSFA())
 			ss_shape << " DEF='" << iShape->GetName() << "'";
 
 		ss_shape << ">\n";
@@ -319,37 +310,19 @@ wstring X3D_Writer::WriteShape(IShape*& iShape, int level) {
 wstring X3D_Writer::WriteIndexedFaceSet(IShape*& iShape, int level) {
 	wstringstream ss_ifs;
 
-	bool isMultiColored = iShape->IsMultiColored();
-	bool isSingleTransparent = iShape->IsSingleTransparent();
 	double transparency = m_transparency;
 
 	// Write Appearance node
 	ss_ifs << Indent(level);
 
-	if (isMultiColored)	// No diffuse color
-	{
-		if (isSingleTransparent)
-			transparency = 1.0 - iShape->GetColor().Alpha();
+	Quantity_ColorRGBA color(m_diffuseColor);
 
-		ss_ifs << WriteAppearance(iShape, m_diffuseColor, false,
-								  m_emissiveColor, false,
-								  m_specularColor, true,
-								  m_shininess, true,
-								  m_ambientIntensity, false,
-								  transparency, isSingleTransparent);
-	} else {
-		Quantity_ColorRGBA color(m_diffuseColor);
-
-		if (isSingleTransparent)
-			transparency = 1.0 - color.Alpha();
-
-		ss_ifs << WriteAppearance(iShape, color.GetRGB(), true,
-								  m_emissiveColor, false,
-								  m_specularColor, true,
-								  m_shininess, true,
-								  m_ambientIntensity, false,
-								  transparency, isSingleTransparent);
-	}
+	ss_ifs << WriteAppearance(iShape, color.GetRGB(), true,
+							  m_emissiveColor, false,
+							  m_specularColor, true,
+							  m_shininess, true,
+							  m_ambientIntensity, false,
+							  transparency, false);
 
 	// Open IndexedFaceSet
 	ss_ifs << Indent(level);
@@ -367,12 +340,6 @@ wstring X3D_Writer::WriteIndexedFaceSet(IShape*& iShape, int level) {
 	ss_ifs << Indent(level + 1);
 	ss_ifs << WriteCoordinate(iShape, false);
 
-	// Write colors
-	if (isMultiColored) {
-		ss_ifs << Indent(level + 1);
-		ss_ifs << WriteColor(iShape);
-	}
-
 	// Close IndexedFaceSet
 	ss_ifs << Indent(level);
 	ss_ifs << "</IndexedFaceSet>\n";
@@ -383,20 +350,16 @@ wstring X3D_Writer::WriteIndexedFaceSet(IShape*& iShape, int level) {
 wstring X3D_Writer::WriteIndexedLineSet(IShape*& iShape, int level) {
 	wstringstream ss_ils;
 
-	bool isMultiColored = iShape->IsMultiColored();
-
 	// Write Appearance node
 	if (iShape->IsSketchGeometry()) {
-		if (!isMultiColored) {
-			Quantity_ColorRGBA color(m_emissiveColor);
-			ss_ils << Indent(level);
-			ss_ils << WriteAppearance(iShape, m_diffuseColor, false,
-									  color.GetRGB(), true,
-									  m_specularColor, false,
-									  m_shininess, false,
-									  m_ambientIntensity, false,
-									  m_transparency, false);
-		}
+		Quantity_ColorRGBA color(m_emissiveColor);
+		ss_ils << Indent(level);
+		ss_ils << WriteAppearance(iShape, m_diffuseColor, false,
+								  color.GetRGB(), true,
+								  m_specularColor, false,
+								  m_shininess, false,
+								  m_ambientIntensity, false,
+								  m_transparency, false);
 	} else {
 		Quantity_Color color(0.0, 0.0, 0.0, Quantity_TOC_RGB);
 
@@ -421,13 +384,6 @@ wstring X3D_Writer::WriteIndexedLineSet(IShape*& iShape, int level) {
 		ss_ils << WriteCoordinate(iShape, false);
 	else
 		ss_ils << WriteCoordinate(iShape, true);
-
-	// Write colors
-	if (iShape->IsSketchGeometry()
-		&& isMultiColored) {
-		ss_ils << Indent(level + 1);
-		ss_ils << WriteColor(iShape);
-	}
 
 	// Close IndexedLineSet
 	ss_ils << Indent(level);
@@ -473,7 +429,7 @@ wstring X3D_Writer::WriteAppearance(IShape*& iShape, const Quantity_Color& diffu
 
 	ss_app << "><Material";
 
-	if (m_opt->SFA()
+	if (m_opt->GetSFA()
 		//&& iShape->IsFaceSet()
 		)
 		ss_app << " id='mat" << to_wstring(appID) << "'";
@@ -525,7 +481,7 @@ wstring X3D_Writer::WriteCoordinate(IShape*& iShape, bool isBoundaryEdges) const
 	ss_coords << "<Coordinate";
 
 	if (!isBoundaryEdges) {
-		if (m_opt->Edge()
+		if (m_opt->GetEdge()
 			&& iShape->IsFaceSet())
 			ss_coords << " DEF='c" << to_wstring(iShape->GetGlobalIndex()) << "'";
 
@@ -546,7 +502,7 @@ wstring X3D_Writer::WriteCoordinate(IShape*& iShape, bool isBoundaryEdges) const
 		ss_coords << " USE='c" << to_wstring(iShape->GetGlobalIndex());
 	}
 
-	if (m_opt->SFA())
+	if (m_opt->GetSFA())
 		ss_coords << "'></Coordinate>\n";
 	else
 		ss_coords << "'/>\n";
@@ -628,12 +584,7 @@ wstring X3D_Writer::WriteNormalIndex(IShape*& iShape) const {
 wstring X3D_Writer::WriteColor(IShape*& iShape) const {
 	wstringstream ss_colors;
 
-	bool isMultiTransparent = iShape->IsMultiTransparent();
-
-	if (isMultiTransparent)
-		ss_colors << "<ColorRGBA color='";
-	else
-		ss_colors << "<Color color='";
+	ss_colors << "<Color color='";
 
 	// Write colors for each coordinate point
 	for (int i = 0; i < iShape->GetMeshSize(); ++i) {
@@ -641,23 +592,12 @@ wstring X3D_Writer::WriteColor(IShape*& iShape) const {
 
 		for (int j = 0; j < mesh->GetCoordinateSize(); ++j) {
 			const Quantity_ColorRGBA& color = iShape->GetColor(mesh->GetShape());
-
 			ss_colors << NumTool::DoubleToWString(color.GetRGB().Red()) << " ";
 			ss_colors << NumTool::DoubleToWString(color.GetRGB().Green()) << " ";
 			ss_colors << NumTool::DoubleToWString(color.GetRGB().Blue()) << " ";
-
-			if (isMultiTransparent) {
-				double transparency = color.Alpha();
-				ss_colors << NumTool::DoubleToWString(transparency) << " ";
-			}
 		}
 	}
-
-	if (isMultiTransparent)
-		ss_colors << "'></ColorRGBA>\n";
-	else
-		ss_colors << "'></Color>\n";
-
+	ss_colors << "'></Color>\n";
 	return CleanString(ss_colors.str());
 }
 
@@ -765,20 +705,16 @@ wstring X3D_Writer::WriteSketchGeometry(IShape*& iShape, int level) {
 	ss_sg << Indent(level);
 	ss_sg << "<Shape>\n";
 
-	bool isMultiColored = iShape->IsMultiColored();
-
 	// Write Appearance node
-	if (!isMultiColored) {
-		Quantity_Color color;
-		color = m_emissiveColor;
-		ss_sg << Indent(level + 1);
-		ss_sg << "<Appearance><Material";
-		ss_sg << " emissiveColor='";
-		ss_sg << NumTool::DoubleToWString(color.Red()) << " ";
-		ss_sg << NumTool::DoubleToWString(color.Green()) << " ";
-		ss_sg << NumTool::DoubleToWString(color.Blue()) << "'";
-		ss_sg << "></Material></Appearance>\n";
-	}
+	Quantity_Color color;
+	color = m_emissiveColor;
+	ss_sg << Indent(level + 1);
+	ss_sg << "<Appearance><Material";
+	ss_sg << " emissiveColor='";
+	ss_sg << NumTool::DoubleToWString(color.Red()) << " ";
+	ss_sg << NumTool::DoubleToWString(color.Green()) << " ";
+	ss_sg << NumTool::DoubleToWString(color.Blue()) << "'";
+	ss_sg << "></Material></Appearance>\n";
 
 	// Open IndexedLineSet
 	ss_sg << Indent(level + 1);
@@ -788,12 +724,6 @@ wstring X3D_Writer::WriteSketchGeometry(IShape*& iShape, int level) {
 	// Write coordinates
 	ss_sg << Indent(level + 2);
 	ss_sg << WriteCoordinate(iShape, false);
-
-	// Write colors
-	if (isMultiColored) {
-		ss_sg << Indent(level + 2);
-		ss_sg << WriteColor(iShape);
-	}
 
 	// Close IndexedLineSet
 	ss_sg << Indent(level + 1);
@@ -808,7 +738,7 @@ wstring X3D_Writer::WriteSketchGeometry(IShape*& iShape, int level) {
 wstring X3D_Writer::WriteHiddenGeometry(Component*& comp, int level) {
 	wstringstream ss_hg;
 
-	if (m_opt->SFA()) // SFA-specific
+	if (m_opt->GetSFA()) // SFA-specific
 	{
 		ss_hg << "<!--composites-->\n";
 		ss_hg << Indent(level) << "<Switch whichChoice='0' id='swComposites1'><Group>\n";
@@ -819,9 +749,6 @@ wstring X3D_Writer::WriteHiddenGeometry(Component*& comp, int level) {
 	for (int i = 0; i < comp->GetIShapeSize(); ++i) {
 		IShape* iShape = comp->GetIShapeAt(i);
 
-		if (!iShape->IsHidden())
-			continue;
-
 		try {
 			ss_hg << WriteShape(iShape, level + 1);
 		} catch (...) {
@@ -829,7 +756,7 @@ wstring X3D_Writer::WriteHiddenGeometry(Component*& comp, int level) {
 		}
 	}
 
-	if (m_opt->SFA()) // SFA-specific
+	if (m_opt->GetSFA()) // SFA-specific
 	{
 		ss_hg << Indent(level) << "</Group></Switch>\n";
 	}

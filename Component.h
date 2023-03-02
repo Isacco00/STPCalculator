@@ -23,10 +23,6 @@ public:
 
 	void Clean(void);
 
-	// SFA-specific
-	void SetStepID(int stepID) { m_stepID = stepID; }
-	const int GetStepID(void) const { return m_stepID; }
-
 protected:
 	void Clear(void);
 	void CleanEmptyIShapes(void);

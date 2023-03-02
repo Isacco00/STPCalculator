@@ -27,8 +27,6 @@ add_executable (STPCalculator
   OCCUtil.h
   InputOptions.cpp
   InputOptions.h
-  STEP_Data.cpp
-  STEP_Data.h
   StopWatch.cpp
   StopWatch.h
   StepCalculator.cpp

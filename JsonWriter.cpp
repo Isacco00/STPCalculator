@@ -47,7 +47,7 @@ void JsonWriter::WriteJson(Model*& model) {
 	*/
 	std::string jsonString = jsonContainer.dump();
 	// Write JSON file
-	wstring filePath = m_opt->OutputJson();
+	wstring filePath = m_opt->GetOutputJson();
 	wofstream wof;
 	// This line is required to write Unicode characters.
 	wof.imbue(locale(locale::empty(), new codecvt_utf8<wchar_t, 0x10ffff, generate_header>));
@@ -58,7 +58,7 @@ void JsonWriter::WriteJson(Model*& model) {
 }
 
 json JsonWriter::GetBoundingBox(Model*& model) const {
-	Bnd_Box bndBox = model->GetBoundingBox(m_opt->Sketch());
+	Bnd_Box bndBox = model->GetBoundingBox(m_opt->GetSketch());
 	assert(!bndBox.IsVoid());
 
 	double X_min = 0.0, Y_min = 0.0, Z_min = 0.0;
@@ -78,10 +78,10 @@ json JsonWriter::GetBoundingBox(Model*& model) const {
 
 json JsonWriter::GetComponents(Model*& model) {
 	json componentList = json::array();
-	if (model->GetRootComponentSize() < 2) {
-		for (int i = 0; i < model->GetRootComponentSize(); i++) {
-			Component* rootComp = model->GetRootComponentAt(i);
-			if (m_opt->SFA() // SFA-specific
+	if (model->GetComponentSize() < 2) {
+		for (int i = 0; i < model->GetComponentSize(); i++) {
+			Component* rootComp = model->GetComponentAt(i);
+			if (m_opt->GetSFA() // SFA-specific
 				&& rootComp->GetIShapeSize() == 1
 				&& rootComp->GetIShapeAt(0)->IsSketchGeometry()) {
 				//TO MANAGE
@@ -174,9 +174,6 @@ json JsonWriter::WriteComponent(Component*& comp) {
 	json shapeList = json::array();
 	for (int i = 0; i < comp->GetIShapeSize(); ++i) {
 		IShape* iShape = comp->GetIShapeAt(i);
-
-		if (iShape->IsHidden())
-			continue;
 
 		try {
 			shapeList.push_back(WriteShape(iShape));
@@ -274,32 +271,14 @@ json JsonWriter::WriteShape(IShape*& iShape) {
 
 vector<json> JsonWriter::WriteIndexedFaceSet(IShape*& iShape) {
 	vector<json> propertyList;
-	bool isMultiColored = iShape->IsMultiColored();
-	bool isSingleTransparent = iShape->IsSingleTransparent();
 	double transparency = m_transparency;
-
-	if (isMultiColored) { // No diffuse color
-		if (isSingleTransparent) {
-			transparency = 1.0 - iShape->GetColor().Alpha();
-		}
-		propertyList.push_back(WriteAppearance(iShape, m_diffuseColor, false,
-											   m_emissiveColor, false,
-											   m_specularColor, true,
-											   m_shininess, true,
-											   m_ambientIntensity, false,
-											   transparency, isSingleTransparent));
-	} else {
-		Quantity_ColorRGBA color(m_diffuseColor);
-		if (isSingleTransparent) {
-			transparency = 1.0 - color.Alpha();
-		}
-		propertyList.push_back(WriteAppearance(iShape, color.GetRGB(), true,
-											   m_emissiveColor, false,
-											   m_specularColor, true,
-											   m_shininess, true,
-											   m_ambientIntensity, false,
-											   transparency, isSingleTransparent));
-	}
+	Quantity_ColorRGBA color(m_diffuseColor);
+	propertyList.push_back(WriteAppearance(iShape, color.GetRGB(), true,
+										   m_emissiveColor, false,
+										   m_specularColor, true,
+										   m_shininess, true,
+										   m_ambientIntensity, false,
+										   transparency, false));
 
 	// Open IndexedFaceSet
 	json faceSetProperty = json::object();
@@ -310,11 +289,6 @@ vector<json> JsonWriter::WriteIndexedFaceSet(IShape*& iShape) {
 	json mesh = json::object();
 	// Write coordinates
 	propertyList.push_back(WriteMesh(iShape));
-
-	// Write colors
-	if (isMultiColored) {
-		WriteColor(iShape);
-	}
 	return propertyList;
 }
 
@@ -543,12 +517,7 @@ wstring JsonWriter::WriteNormalIndex(IShape*& iShape) const {
 wstring JsonWriter::WriteColor(IShape*& iShape) const {
 	wstringstream ss_colors;
 
-	bool isMultiTransparent = iShape->IsMultiTransparent();
-
-	if (isMultiTransparent)
-		ss_colors << "<ColorRGBA color='";
-	else
-		ss_colors << "<Color color='";
+	ss_colors << "<Color color='";
 
 	// Write colors for each coordinate point
 	for (int i = 0; i < iShape->GetMeshSize(); ++i) {
@@ -556,23 +525,12 @@ wstring JsonWriter::WriteColor(IShape*& iShape) const {
 
 		for (int j = 0; j < mesh->GetCoordinateSize(); ++j) {
 			const Quantity_ColorRGBA& color = iShape->GetColor(mesh->GetShape());
-
 			ss_colors << NumTool::DoubleToWString(color.GetRGB().Red()) << " ";
 			ss_colors << NumTool::DoubleToWString(color.GetRGB().Green()) << " ";
 			ss_colors << NumTool::DoubleToWString(color.GetRGB().Blue()) << " ";
-
-			if (isMultiTransparent) {
-				double transparency = color.Alpha();
-				ss_colors << NumTool::DoubleToWString(transparency) << " ";
-			}
 		}
 	}
-
-	if (isMultiTransparent)
-		ss_colors << "'></ColorRGBA>\n";
-	else
-		ss_colors << "'></Color>\n";
-
+	ss_colors << "'></Color>\n";
 	return CleanString(ss_colors.str());
 }
 

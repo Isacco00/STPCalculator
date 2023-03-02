@@ -12,11 +12,7 @@ public:
 	void SetComponent(Component* comp) { m_component = comp; }
 	void SetGlobalIndex(int globalIndex) { m_globalIndex = globalIndex; }
 	void SetTessellated(bool isTessellated) { m_isTessellated = isTessellated; }
-	void SetHidden(bool isHidden) { m_isHidden = isHidden; }
-
-	void AddColor(const TopoDS_Shape& shape, const Quantity_ColorRGBA& color);
 	void AddMesh(Mesh*& mesh) { m_meshList.push_back(mesh); }
-
 	const wstring& GetName(void) const { return m_name; }
 	Component* GetComponent(void) const { return m_component; }
 	const TopoDS_Shape& GetShape(void) const { return m_shape; }
@@ -27,17 +23,10 @@ public:
 	const int GetGlobalIndex(void) const { return m_globalIndex; }
 
 	const int GetMeshSize(void) const { return (int)m_meshList.size(); }
-
-	bool IsMultiColored(void) const { return m_isMultiColored; }
-	bool IsMultiTransparent(void) const { return m_isMultiTransparent; }
-	bool IsSingleTransparent(void) const;
-	bool IsTransparent(void) const { return m_isTransparent; }
 	bool IsTessellated(void) const { return m_isTessellated; }
 
 	bool IsFaceSet(void) const { return m_isFaceSet; }
 	bool IsSketchGeometry(void) const { return !m_isFaceSet; }
-
-	bool IsHidden(void) const { return m_isHidden; }
 
 	bool IsEmpty(void) const;
 
@@ -49,7 +38,6 @@ public:
 
 
 protected:
-	void CheckColor(const Quantity_ColorRGBA& color);
 	void Clear(void);
 
 private:
@@ -58,12 +46,8 @@ private:
 	int m_globalIndex;
 	int m_stepID;
 
-	bool m_isMultiColored;
-	bool m_isMultiTransparent;
-	bool m_isTransparent;
 	bool m_isTessellated;
 	bool m_isFaceSet;
-	bool m_isHidden;
 
 	Component* m_component;
 

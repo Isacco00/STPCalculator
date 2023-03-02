@@ -24,25 +24,6 @@ namespace OCCUtil {
 		return volume;
 	}
 
-	void RemoveFreeWires(TopoDS_Shape shape) {
-		BRepTools::Clean(shape);
-		BRep_Builder builder;
-
-		for (TopoDS_Iterator exp(shape); exp.More(); exp.Next()) {
-			TopoDS_Shape subShape = exp.Value();
-			TopAbs_ShapeEnum subShapeType = subShape.ShapeType();
-
-			if (subShapeType == TopAbs_COMPOUND) {
-				RemoveFreeWires(subShape);
-			} else if (subShapeType != TopAbs_COMPSOLID
-					  && subShapeType != TopAbs_SOLID
-					  && subShapeType != TopAbs_SHELL) {
-				// wires or edges or vertices 
-				builder.Remove(shape, subShape);
-			}
-		}
-	}
-
 	const TopoDS_Shape& GetCopiedShape(const TopoDS_Shape& shape) {
 		BRepBuilderAPI_Copy copier(shape);
 		const TopoDS_Shape& copiedShape = copier.Shape();

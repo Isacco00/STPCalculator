@@ -7,11 +7,7 @@
 IShape::IShape(const TopoDS_Shape& shape)
 	: m_shape(shape),
 	m_isTessellated(false),
-	m_isMultiColored(false),
-	m_isMultiTransparent(false),
-	m_isTransparent(false),
 	m_isFaceSet(false),
-	m_isHidden(false),
 	m_component(nullptr),
 	m_globalIndex(0),
 	m_stepID(-1) {
@@ -25,31 +21,11 @@ IShape::~IShape(void) {
 	Clear();
 }
 
-void IShape::AddColor(const TopoDS_Shape& shape, const Quantity_ColorRGBA& color) {
-	int shapeID = OCCUtil::GetID(shape);
-	//m_shapeIDcolorMap.insert({ shapeID,color });
-
-	if (m_shapeIDcolorMap.find(shapeID) == m_shapeIDcolorMap.end())
-		m_shapeIDcolorMap.insert({ shapeID,color });
-	else
-		m_shapeIDcolorMap.find(shapeID)->second = color;
-
-	CheckColor(color);
-}
-
 const Quantity_ColorRGBA& IShape::GetColor(const TopoDS_Shape& shape) const {
 	int shapeID = OCCUtil::GetID(shape);
 	const Quantity_ColorRGBA& color = m_shapeIDcolorMap.find(shapeID)->second;
 
 	return color;
-}
-
-bool IShape::IsSingleTransparent(void) const {
-	if (IsTransparent()
-		&& !IsMultiTransparent())
-		return true;
-
-	return false;
 }
 
 bool IShape::IsEmpty(void) const {
@@ -71,33 +47,6 @@ wstring IShape::GetUniqueName(void) const {
 	}
 
 	return uniqueName;
-}
-
-void IShape::CheckColor(const Quantity_ColorRGBA& color) {
-	m_colorList.push_back(color);
-	int colorSize = (int)m_colorList.size();
-
-	// Check if transparent
-	if (!m_isTransparent) {
-		if (color.Alpha() < 1.0)
-			m_isTransparent = true;
-	}
-
-	// Check if multi-colored or multi-transparent
-	if (colorSize >= 2
-		&& (!m_isMultiColored
-			|| !m_isMultiTransparent)) {
-		const Quantity_ColorRGBA& pre = m_colorList[colorSize - 2];
-		const Quantity_ColorRGBA& cur = m_colorList[colorSize - 1];
-
-		if (!m_isMultiColored
-			&& pre.GetRGB() != cur.GetRGB())
-			m_isMultiColored = true;
-
-		if (!m_isMultiTransparent
-			&& pre.Alpha() != cur.Alpha())
-			m_isMultiTransparent = true;
-	}
 }
 
 void IShape::Clear(void) {

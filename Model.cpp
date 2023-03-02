@@ -75,9 +75,9 @@ void Model::Update(void) {
 }
 
 void Model::Clean(void) {
-	int rootCompSize = GetRootComponentSize();
+	int rootCompSize = GetComponentSize();
 	for (int i = rootCompSize - 1; i >= 0; --i) {
-		Component* rootComp = GetRootComponentAt(i);
+		Component* rootComp = GetComponentAt(i);
 		if (rootComp->IsEmpty()) {
 			m_rootComponents.erase(m_rootComponents.begin() + i);
 			delete rootComp;

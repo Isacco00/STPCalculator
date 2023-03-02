@@ -10,7 +10,7 @@ StepReader::~StepReader(void) {}
 
 bool StepReader::ReadSTEP(Model* model) {
 	IFSelect_ReturnStatus status;
-	wstring filePath = m_opt->Input();
+	wstring filePath = m_opt->GetInput();
 	OSD::SetSignal(false);
 	try {
 		model->Clear();
@@ -27,7 +27,7 @@ bool StepReader::ReadSTEP(Model* model) {
 			IShape* iShape = new IShape(shape);
 			Component* rootComp = new Component(shape);
 			rootComp->AddIShape(iShape);
-			model->AddRootComponent(rootComp);
+			model->AddComponent(rootComp);
 		}
 	} catch (...) {
 		// Unknown failure

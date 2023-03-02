@@ -7,7 +7,7 @@
 Tessellator::Tessellator(InputOptions* opt)
 	: m_opt(opt) {
 	double angDeflection_max = 0.8, angDeflection_min = 0.2, angDeflection_gap = (angDeflection_max - angDeflection_min) / 10;
-	m_angDeflection = max(angDeflection_max - (m_opt->Quality() * angDeflection_gap), angDeflection_min);
+	m_angDeflection = max(angDeflection_max - (m_opt->GetQuality() * angDeflection_gap), angDeflection_min);
 
 	//m_linDeflection = 2.5 / m_opt->Quality();
 	//m_angDeflection = 5.0 / m_opt->Quality();
@@ -24,8 +24,8 @@ void Tessellator::Tessellate(Model*& model) const {
 }
 
 void Tessellator::TessellateModel(Model*& model) const {
-	for (int i = 0; i < model->GetRootComponentSize(); ++i) {
-		Component* rootComp = model->GetRootComponentAt(i);
+	for (int i = 0; i < model->GetComponentSize(); ++i) {
+		Component* rootComp = model->GetComponentAt(i);
 		const TopoDS_Shape& shape = rootComp->GetShape();
 
 		// Get the relative linear deflection for a shape
@@ -50,21 +50,6 @@ void Tessellator::TessellateModel(Model*& model) const {
 }
 
 void Tessellator::TessellateShape(IShape*& iShape) const {
-	if (m_opt->SFA() && iShape->IsHidden()) {
-		const TopoDS_Shape& shape = iShape->GetShape();
-
-		// Get the relative linear deflection for a shape
-		double linDeflection = OCCUtil::GetDeflection(shape);
-
-		if (m_opt->SFA() // SFA-specific
-			&& iShape->IsHidden())
-			linDeflection = 0.1 * linDeflection;
-
-		// Tessellate and add mesh data of a shape
-		if (!OCCUtil::TessellateShape(shape, linDeflection, m_isRelative, m_angDeflection, true))
-			wcout << "\tTessellation has failed on Shape: " << iShape->GetName() << endl;
-	}
-
 	if (iShape->IsFaceSet())
 		AddMeshForFaceSet(iShape);
 	else
@@ -74,6 +59,11 @@ void Tessellator::TessellateShape(IShape*& iShape) const {
 void Tessellator::AddMeshForFaceSet(IShape*& iShape) const {
 	const TopoDS_Shape& shape = iShape->GetShape();
 
+	TopExp_Explorer ExpEdge;
+	for (ExpEdge.Init(shape, TopAbs_EDGE); ExpEdge.More(); ExpEdge.Next()) {
+		const TopoDS_Edge& edge = TopoDS::Edge(ExpEdge.Current());
+		
+	}
 	// Traverse faces
 	TopExp_Explorer ExpFace;
 	for (ExpFace.Init(shape, TopAbs_FACE); ExpFace.More(); ExpFace.Next()) {
@@ -142,25 +132,26 @@ Mesh* Tessellator::GetMeshForFace(const TopoDS_Face& face) const {
 
 		mesh->AddFaceIndex(n1, n2, n3);
 	}
-
+	double perimeter = 0.0;
 	// Add boundary edges
-	if (m_opt->Edge()) {
+	if (m_opt->GetEdge()) {
 		TopExp_Explorer ExpEdge;
 		for (ExpEdge.Init(face, TopAbs_EDGE); ExpEdge.More(); ExpEdge.Next()) {
 			const TopoDS_Edge& edge = TopoDS::Edge(ExpEdge.Current());
 			const Handle(Poly_PolygonOnTriangulation)& polygon = BRep_Tool::PolygonOnTriangulation(edge, myT, loc);
 			const TColStd_Array1OfInteger& edgeNodes = polygon->Nodes();
-
 			vector<int> edgeIndex;
-
 			for (int i = edgeNodes.Lower(); i <= edgeNodes.Upper(); ++i)
 				edgeIndex.push_back(edgeNodes(i));
 
 			mesh->AddEdgeIndex(edgeIndex);
+			GProp_GProps System;
+			BRepGProp::LinearProperties(edge, System);
+			perimeter += System.Mass();
 			edgeIndex.clear();
 		}
 	}
-
+	mesh->SetPerimeter(perimeter);
 	return mesh;
 }
 
@@ -170,8 +161,7 @@ Mesh* Tessellator::GetMeshForEdge(const TopoDS_Edge& edge) const {
 	// Get a tessellated edge
 	const Handle(Poly_Polygon3D)& myP = BRep_Tool::Polygon3D(edge, loc);
 
-	if (!myP
-		|| myP.IsNull())
+	if (!myP || myP.IsNull())
 		return nullptr;
 
 	Mesh* mesh = new Mesh(edge);

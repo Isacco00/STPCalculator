@@ -12,6 +12,7 @@ public:
 	void AddEdgeIndex(Index edgeIndex);
 	void AddCoordinate(const gp_XYZ& coord) { m_coordinates.push_back(coord); }
 	void AddNormal(const gp_XYZ& norm) { m_normals.push_back(norm); }
+	void SetPerimeter(double& perimeter) { m_perimeter = perimeter; }
 
 	const TopoDS_Shape& GetShape(void) const { return m_shape; }
 	const Index& GetFaceIndexAt(int index) const { return m_faceIndexes[index]; }
@@ -40,4 +41,5 @@ private:
 	vector<Index> m_faceIndexes;
 	vector<Index> m_normalIndexes;
 	vector<Index> m_edgeIndexes;
+	double m_perimeter;
 };

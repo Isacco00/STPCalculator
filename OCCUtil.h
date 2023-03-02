@@ -10,12 +10,6 @@ namespace OCCUtil {
 	// Compute volue of a shape
 	double ComputeVolume(const TopoDS_Shape& shape);
 
-	// Remove free wires, edges, and vertices not beloing to solids or shells
-	void RemoveFreeWires(TopoDS_Shape shape);
-
-	// Copy and return the shape 
-	const TopoDS_Shape& GetCopiedShape(const TopoDS_Shape& shape);
-
 	// Check if the shape has faces
 	bool HasFace(const TopoDS_Shape& shape);
 

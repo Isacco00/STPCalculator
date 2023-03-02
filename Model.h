@@ -8,9 +8,9 @@ public:
 	Model(void);
 	~Model(void);
 
-	void AddRootComponent(Component*& comp) { m_rootComponents.push_back(comp); }
-	Component* GetRootComponentAt(int index) const { return m_rootComponents[index]; }
-	const int GetRootComponentSize(void) const { return (int)m_rootComponents.size(); }
+	void AddComponent(Component*& comp) { m_rootComponents.push_back(comp); }
+	Component* GetComponentAt(int index) const { return m_rootComponents[index]; }
+	const int GetComponentSize(void) const { return (int)m_rootComponents.size(); }
 
 	void GetAllComponents(vector<Component*>& comps) const;
 	const Bnd_Box GetBoundingBox(bool sketch) const;
