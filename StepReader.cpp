@@ -16,8 +16,10 @@ bool StepReader::ReadSTEP(Model* model) {
 		model->Clear();
 		// Read a STEP file
 		STEPControl_Reader reader;
+
 		TCollection_AsciiString aFileName((const wchar_t*)filePath.c_str());
 		status = reader.ReadFile(aFileName.ToCString());
+
 		//status = reader.ReadFile(filePath.c_str());
 		if (!CheckReturnStatus(status)) {
 			return false;

@@ -10,6 +10,7 @@ public:
 	void AddFaceIndex(int v1, int v2, int v3);
 	void AddNormalIndex(int v1, int v2, int v3);
 	void AddEdgeIndex(Index edgeIndex);
+	void AddEdgePerimeter(double edgePerimeter);
 	void AddCoordinate(const gp_XYZ& coord) { m_coordinates.push_back(coord); }
 	void AddNormal(const gp_XYZ& norm) { m_normals.push_back(norm); }
 	void SetPerimeter(double& perimeter) { m_perimeter = perimeter; }
@@ -18,12 +19,15 @@ public:
 	const Index& GetFaceIndexAt(int index) const { return m_faceIndexes[index]; }
 	const Index& GetNormalIndexAt(int index) const { return m_normalIndexes[index]; }
 	const Index& GetEdgeIndexAt(int index) const { return m_edgeIndexes[index]; }
+	const double GetEdgePerimeterAt(int index) const { return m_edgePerimeters[index]; }
+	const double GetEdgePerimeter() const { return m_perimeter; }
 	const gp_XYZ& GetCoordinateAt(int index) const { return m_coordinates[index]; }
 	const gp_XYZ& GetNormalAt(int index) const { return m_normals[index]; }
 
 	const int GetFaceIndexSize(void) const { return (int)m_faceIndexes.size(); }
 	const int GetNormalIndexSize(void) const { return (int)m_normalIndexes.size(); }
 	const int GetEdgeIndexSize(void) const { return (int)m_edgeIndexes.size(); }
+	const int GetEdgePerimeterSize(void) const { return (int)m_edgePerimeters.size(); }
 	const int GetCoordinateSize(void) const { return (int)m_coordinates.size(); }
 	const int GetNormalSize(void) const { return (int)m_normals.size(); }
 
@@ -41,5 +45,6 @@ private:
 	vector<Index> m_faceIndexes;
 	vector<Index> m_normalIndexes;
 	vector<Index> m_edgeIndexes;
+	vector<double> m_edgePerimeters;
 	double m_perimeter;
 };

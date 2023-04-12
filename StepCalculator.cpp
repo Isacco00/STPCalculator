@@ -95,7 +95,7 @@ int RunSTP2X3D(InputOptions* opt) {
 		return -1;
 	}
 	/** END_STEP **/
-	//sw.Lap();
+	sw.Lap();
 
 	/** START_TESSELLATION **/
 	cout << "Tessellating.." << endl;
@@ -107,8 +107,8 @@ int RunSTP2X3D(InputOptions* opt) {
 	
 	///** START_JSON **/
 	//cout << "Writing an Json file.." << endl;
-	//JsonWriter jw(opt);
-	//jw.WriteJson(model);
+	JsonWriter jw(opt);
+	jw.WriteJson(model);
 	///** END_JSON **/
 	//sw.Lap();
 	///** START_X3D **/

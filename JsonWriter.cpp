@@ -37,14 +37,6 @@ void JsonWriter::WriteJson(Model*& model) {
 	modelJson["components"] = GetComponents(model);
 	jsonContainer["model"] = modelJson;
 
-	/*
-
-	// Write model
-	ss_Json << WriteModel(model, level + 1);
-
-	// Close header
-	ss_Json << CloseHeader();
-	*/
 	std::string jsonString = jsonContainer.dump();
 	// Write JSON file
 	wstring filePath = m_opt->GetOutputJson();
@@ -59,6 +51,7 @@ void JsonWriter::WriteJson(Model*& model) {
 
 json JsonWriter::GetBoundingBox(Model*& model) const {
 	Bnd_Box bndBox = model->GetBoundingBox(m_opt->GetSketch());
+	bndBox.SetGap(0.0);
 	assert(!bndBox.IsVoid());
 
 	double X_min = 0.0, Y_min = 0.0, Z_min = 0.0;
@@ -436,6 +429,7 @@ json JsonWriter::WriteMesh(IShape*& iShape) const {
 		}
 		wstring edgeIndex = ss_edgeIndex.str();
 		meshJson["edgeIndex"] = edgeIndex.c_str();
+		meshJson["edgePerimeter"] = mesh->GetEdgePerimeter();
 
 		prevCoordCount += mesh->GetCoordinateSize();
 		meshListJson.push_back(meshJson);

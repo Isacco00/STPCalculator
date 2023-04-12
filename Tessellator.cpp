@@ -62,7 +62,7 @@ void Tessellator::AddMeshForFaceSet(IShape*& iShape) const {
 	TopExp_Explorer ExpEdge;
 	for (ExpEdge.Init(shape, TopAbs_EDGE); ExpEdge.More(); ExpEdge.Next()) {
 		const TopoDS_Edge& edge = TopoDS::Edge(ExpEdge.Current());
-		
+
 	}
 	// Traverse faces
 	TopExp_Explorer ExpFace;
@@ -101,8 +101,7 @@ Mesh* Tessellator::GetMeshForFace(const TopoDS_Face& face) const {
 	const Handle(Poly_Triangulation)& myT = BRep_Tool::Triangulation(face, loc);
 
 	// Skip if triangulation has failed
-	if (!myT
-		|| myT.IsNull())
+	if (!myT || myT.IsNull())
 		return nullptr;
 
 	Mesh* mesh = new Mesh(face);
@@ -132,7 +131,7 @@ Mesh* Tessellator::GetMeshForFace(const TopoDS_Face& face) const {
 
 		mesh->AddFaceIndex(n1, n2, n3);
 	}
-	double perimeter = 0.0;
+	double perimeterFace = 0.0;
 	// Add boundary edges
 	if (m_opt->GetEdge()) {
 		TopExp_Explorer ExpEdge;
@@ -141,17 +140,20 @@ Mesh* Tessellator::GetMeshForFace(const TopoDS_Face& face) const {
 			const Handle(Poly_PolygonOnTriangulation)& polygon = BRep_Tool::PolygonOnTriangulation(edge, myT, loc);
 			const TColStd_Array1OfInteger& edgeNodes = polygon->Nodes();
 			vector<int> edgeIndex;
+			vector<double> edgePerimeter;
 			for (int i = edgeNodes.Lower(); i <= edgeNodes.Upper(); ++i)
 				edgeIndex.push_back(edgeNodes(i));
 
 			mesh->AddEdgeIndex(edgeIndex);
 			GProp_GProps System;
 			BRepGProp::LinearProperties(edge, System);
-			perimeter += System.Mass();
+			double perimeter = System.Mass();
+			mesh->AddEdgePerimeter(perimeter);
+			perimeterFace += System.Mass();
 			edgeIndex.clear();
 		}
 	}
-	mesh->SetPerimeter(perimeter);
+	mesh->SetPerimeter(perimeterFace);
 	return mesh;
 }
 

@@ -31,6 +31,10 @@ void Mesh::AddEdgeIndex(Index edgeIndex) {
 	m_edgeIndexes.push_back(edgeIndex);
 }
 
+void Mesh::AddEdgePerimeter(double edgePerimeter) {
+	m_edgePerimeters.push_back(edgePerimeter);
+}
+
 bool Mesh::IsEmpty(void) const {
 	if (m_coordinates.empty())
 		return true;
