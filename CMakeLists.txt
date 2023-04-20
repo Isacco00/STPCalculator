@@ -9,6 +9,8 @@ find_package(OpenCASCADE)
 # Configure C++ compiler's includes dir
 include_directories ( SYSTEM ${OpenCASCADE_INCLUDE_DIR} )
 
+find_package(nlohmann_json 3.7.0 REQUIRED)
+
 # Add executable
 add_executable (STPCalculator
   CommonImport.cpp
@@ -47,6 +49,9 @@ foreach (LIB ${OpenCASCADE_LIBRARIES})
   target_link_libraries(STPCalculator debug ${OpenCASCADE_LIBRARY_DIR}d/${LIB}.lib)
   target_link_libraries(STPCalculator optimized ${OpenCASCADE_LIBRARY_DIR}/${LIB}.lib)
 endforeach()
+
+target_link_libraries(STPCalculator debug nlohmann_json::nlohmann_json)
+target_link_libraries(STPCalculator optimized nlohmann_json::nlohmann_json)
 
 set_property(TARGET STPCalculator PROPERTY VS_DEBUGGER_ENVIRONMENT "PATH=$<$<CONFIG:DEBUG>:${OpenCASCADE_BINARY_DIR}d>$<$<NOT:$<CONFIG:DEBUG>>:${OpenCASCADE_BINARY_DIR}>;%PATH%")
 

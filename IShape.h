@@ -13,6 +13,8 @@ public:
 	void SetGlobalIndex(int globalIndex) { m_globalIndex = globalIndex; }
 	void SetTessellated(bool isTessellated) { m_isTessellated = isTessellated; }
 	void AddMesh(Mesh*& mesh) { m_meshList.push_back(mesh); }
+	void SetVolume(double& volume) { m_volume = volume; }
+	const double GetVolume() const { return m_volume; }
 	const wstring& GetName(void) const { return m_name; }
 	Component* GetComponent(void) const { return m_component; }
 	const TopoDS_Shape& GetShape(void) const { return m_shape; }
@@ -48,6 +50,7 @@ private:
 
 	bool m_isTessellated;
 	bool m_isFaceSet;
+	double m_volume;
 
 	Component* m_component;
 

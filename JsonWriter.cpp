@@ -215,6 +215,7 @@ json JsonWriter::WriteShape(IShape*& iShape) {
 		shape["shapeID"] = shapeId.c_str();
 		shape["shapeName"] = iShape->GetName().c_str();
 		shape["stepID"] = iShape->GetStepID();
+		shape["volume"] = iShape->GetVolume();
 		vector<json> propertyList = WriteIndexedFaceSet(iShape);
 		shape["appearance"] = propertyList[0];
 		shape["faceSet"] = propertyList[1];

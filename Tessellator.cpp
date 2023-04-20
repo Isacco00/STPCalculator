@@ -74,7 +74,10 @@ void Tessellator::AddMeshForFaceSet(IShape*& iShape) const {
 		if (mesh)
 			iShape->AddMesh(mesh);
 	}
-
+	GProp_GProps props;
+	BRepGProp::VolumeProperties(shape, props);
+	Standard_Real volume = props.Mass();
+	iShape->SetVolume(volume);
 	iShape->SetTessellated(true);
 }
 

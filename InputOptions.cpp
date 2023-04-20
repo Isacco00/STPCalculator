@@ -27,6 +27,5 @@ const wstring InputOptions::GetOutput(void) const {
 
 const wstring InputOptions::GetOutputJson(void) const {
 	wstring output = m_output;
-	output.append(L"\\calculatedStep.json");
 	return output;
 }

@@ -141,8 +141,8 @@ int main(int argc, char** argv) {
 	int status = -1; // Translation status
 
 #if _DEBUG
-	opt.SetInput(L"C:\\Users\\Isacco\\Desktop\\test.stp");
-	opt.SetOutput(L"C:\\Users\\Isacco\\Desktop\\STPCalculator");
+	opt.SetInput(L"C:\\Users\\isacc\\Desktop\\test.stp");
+	opt.SetOutput(L"C:\\Users\\isacc\\Desktop\\STPCalculator\\testCalculatedStep.json");
 #else
 	if (!SetOption(argc, argv, &opt))
 		return status;
