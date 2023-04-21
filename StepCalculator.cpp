@@ -74,9 +74,6 @@ bool SetOption(int argc, char* argv[], InputOptions* opt) {
 			   && !fs::is_regular_file(opt->GetInput())) {
 		wcout << "No such file or directory: " << opt->GetInput() << endl;
 		return false;
-	} else if (!fs::is_directory(opt->GetOutputDirectory())) {
-		wcout << "No such directory: " << opt->GetOutputDirectory() << endl;
-		return false;
 	}
 
 	return true;
